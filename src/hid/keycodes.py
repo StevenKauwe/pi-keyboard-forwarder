@@ -147,5 +147,8 @@ KEYCODE_REFRESH = 0xFA
 
 @dataclasses.dataclass
 class Keystroke:
+    KEY_UP = 0
+    KEY_DOWN = 1
     keycode: int
     modifier: int = KEYCODE_NONE
+    keystate: int = 0

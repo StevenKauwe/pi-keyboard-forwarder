@@ -17,9 +17,9 @@ def main():
         logger.debug(f"Received event: {event}")
         if event.type == ecodes.EV_KEY:
             key_event = categorize(event)
-            # Ignore auto-repeat events
-            if key_event.keystate == key_event.key_hold:
-                continue
+            # # Ignore auto-repeat events
+            # if key_event.keystate == key_event.key_hold:
+            #     continue
             # Convert the input event to a HID event
             hid_keystroke = ecodes_to_hid.convert(key_event)
             logger.debug(f"Converted HID event: {hid_keystroke} from {key_event}")

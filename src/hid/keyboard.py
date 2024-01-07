@@ -3,20 +3,23 @@ from hid.keycodes import Keystroke
 
 
 def send_keystroke(keyboard_path, keystroke: Keystroke):
-    buf = [0] * 8
-    buf[0] = keystroke.modifier
-    buf[2] = keystroke.keycode
-    hid_write.write_to_hid_interface(keyboard_path, buf)
-
-    # If it's a normal keycode (i.e. not a standalone modifier key), add a
-    # message indicating that the key should be released after it is sent. We do
-    # this to prevent the keystroke from incorrectly repeating on the target
-    # machine if network latency causes a delay between the keydown and keyup
-    # events. However, auto-releasing has the disadvantage of preventing
-    # genuinely long key presses (see
-    # https://github.com/tiny-pilot/tinypilot/issues/1093).
-    if keystroke.keycode:
-        release_keys(keyboard_path)
+    hid_code, modifier, keystate = (
+        keystroke.keycode,
+        keystroke.modifier,
+        keystroke.keystate,
+    )
+    # Prepare the report
+    report = bytearray(8)
+    # Set the modifier
+    report[0] = modifier
+    # Set the key code
+    if keystate == Keystroke.key_up:
+        report[2] = 0
+    else:
+        report[2] = hid_code  # Key pressed
+    # Write the report to the HID device
+    with open(keyboard_path, "rb+") as hid_file:
+        hid_file.write(report)
 
 
 def release_keys(keyboard_path):

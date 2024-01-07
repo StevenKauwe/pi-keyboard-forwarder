@@ -192,7 +192,12 @@ def convert(key_event: KeyEvent):
     update_modifier_state(key_event)
     keycode = _map_keycode(key_event)
     modifiers = _get_current_modifiers()
-    return hid.Keystroke(keycode=keycode, modifier=modifiers)
+    logger.debug(
+        f"keycode: {keycode}, modifiers: {modifiers}, keystate: {key_event.keystate}"
+    )
+    return hid.Keystroke(
+        keycode=keycode, modifier=modifiers, keystate=key_event.keystate
+    )
 
 
 def _map_keycode(key_event: KeyEvent):
