@@ -1,9 +1,10 @@
 import atexit
 
 from evdev import InputDevice, categorize, ecodes
+from loguru import logger
+
 from hid import ecodes_to_hid
 from hid import keyboard as fake_keyboard
-from loguru import logger
 
 # Keyboard device path
 KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
@@ -16,10 +17,8 @@ def cleanup():
     fake_keyboard.release_keys(GADGET_PATH)
 
 
-atexit.register(cleanup)
-
-
 def main():
+    atexit.register(cleanup)
     keyboard = InputDevice(KEYBOARD_DEVICE)
     logger.info(f"Listening on device: {keyboard.name}")
 
