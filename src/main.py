@@ -1,3 +1,5 @@
+import atexit
+
 from evdev import InputDevice, categorize, ecodes
 from hid import ecodes_to_hid
 from hid import keyboard as fake_keyboard
@@ -9,6 +11,14 @@ KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
 GADGET_PATH = "/dev/hidg0"  # Replace with your gadget path
 
 
+def cleanup():
+    logger.info("Program is about to exit, releasing all keys...")
+    fake_keyboard.release_keys(GADGET_PATH)
+
+
+atexit.register(cleanup)
+
+
 def main():
     keyboard = InputDevice(KEYBOARD_DEVICE)
     logger.info(f"Listening on device: {keyboard.name}")
@@ -17,9 +27,6 @@ def main():
         logger.debug(f"Received event: {event}")
         if event.type == ecodes.EV_KEY:
             key_event = categorize(event)
-            # # Ignore auto-repeat events
-            # if key_event.keystate == key_event.key_hold:
-            #     continue
             # Convert the input event to a HID event
             hid_keystroke = ecodes_to_hid.convert(key_event)
             logger.debug(f"Converted HID event: {hid_keystroke} from {key_event}")
