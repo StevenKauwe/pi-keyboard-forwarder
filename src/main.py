@@ -18,8 +18,8 @@ executor = concurrent.futures.ThreadPoolExecutor()
 def cleanup():
     global executor
     logger.info("Program is about to exit, releasing all keys...")
-    executor.shutdown(wait=True)
     fake_keyboard.release_keys(GADGET_PATH, executor)
+    executor.shutdown(wait=True)
 
 
 def main():
