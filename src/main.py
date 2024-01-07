@@ -1,5 +1,4 @@
 import atexit
-import concurrent.futures
 
 from evdev import InputDevice, categorize, ecodes
 from hid import ecodes_to_hid
@@ -11,15 +10,12 @@ KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
 # USB Gadget path for emulating keyboard
 GADGET_PATH = "/dev/hidg0"  # Replace with your gadget path
 
-# Global executor
-executor = concurrent.futures.ThreadPoolExecutor()
-
 
 def cleanup():
-    global executor
     logger.info("Program is about to exit, releasing all keys...")
-    fake_keyboard.release_keys(GADGET_PATH, executor)
-    executor.shutdown(wait=True)
+    fake_keyboard.release_keys(
+        GADGET_PATH,
+    )
 
 
 def main():
