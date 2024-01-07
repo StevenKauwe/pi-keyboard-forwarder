@@ -1,4 +1,5 @@
-import execute
+import concurrent.futures
+
 from loguru import logger
 
 
@@ -8,6 +9,12 @@ class Error(Exception):
 
 class WriteError(Error):
     pass
+
+
+def _with_timeout(func, args, timeout_in_seconds):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(func, *args)
+        return future.result(timeout=timeout_in_seconds)
 
 
 def _write_to_hid_interface_immediately(hid_path, buffer):
@@ -30,7 +37,7 @@ def write_to_hid_interface(hid_path, buffer):
     # mouse interface, but the target system has no GUI. To avoid locking up the
     # main server process, perform the HID interface I/O in a separate process.
     try:
-        execute.with_timeout(
+        _with_timeout(
             _write_to_hid_interface_immediately,
             args=(hid_path, buffer),
             timeout_in_seconds=0.5,
