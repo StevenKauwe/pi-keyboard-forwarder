@@ -157,13 +157,9 @@ def convert(char, language):
     Raises:
         UnsupportedCharacterError: If the character is not supported.
     """
-    try:
-        language_map = {"en-GB": _GB_CHAR_TO_HID_MAP, "en-US": _US_CHAR_TO_HID_MAP}[
-            language
-        ]
-    except KeyError:
-        # Default to en-US if no other language matches.
-        language_map = _US_CHAR_TO_HID_MAP
+    language_map = {"en-GB": _GB_CHAR_TO_HID_MAP, "en-US": _US_CHAR_TO_HID_MAP}.get(
+        language, _US_CHAR_TO_HID_MAP
+    )
 
     try:
         hid_keystroke = language_map[char]
