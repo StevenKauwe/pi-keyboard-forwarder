@@ -64,6 +64,7 @@ def main():
 
     # Start a separate thread for file handling
     file_thread = threading.Thread(target=handle_file_input)
+    file_thread.daemon = True
     file_thread.start()
 
     # Continue with the main thread for keyboard event handling

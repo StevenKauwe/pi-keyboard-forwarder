@@ -163,6 +163,7 @@ def convert(char, language):
 
     try:
         hid_keystroke = language_map[char]
+        hid_keystroke.keystate = hid.Keystroke.KEY_DOWN
     except KeyError as e:
         raise UnsupportedCharacterError(f"Unsupported character {char}") from e
 
