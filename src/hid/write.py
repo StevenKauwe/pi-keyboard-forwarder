@@ -30,9 +30,8 @@ def _write_to_hid_interface_immediately(hid_path, buffer):
 def write_to_hid_interface(hid_path, buffer):
     # Avoid an unnecessary string formatting call in a write that requires low
     # latency.
-    logger.debug(
-        f"writing to HID interface {hid_path}: {" ".join([f"{x:#04x}" for x in buffer])}"
-    )
+    buffer_info = " ".join([f"{x:#04x}" for x in buffer])
+    logger.debug(f"writing to HID interface {hid_path}: {buffer_info}")
     # Writes can hang, for example, when TinyPilot is attempting to write to the
     # mouse interface, but the target system has no GUI. To avoid locking up the
     # main server process, perform the HID interface I/O in a separate process.
