@@ -1,6 +1,5 @@
 from evdev import KeyEvent, ecodes
 
-from hid import Keystroke
 from hid import keycodes as hid
 
 
@@ -192,7 +191,7 @@ def convert(key_event: KeyEvent):
     update_modifier_state(key_event)
     keycode = _map_keycode(key_event)
     modifiers = _get_current_modifiers()
-    return Keystroke(keycode=keycode, modifiers=modifiers)
+    return hid.Keystroke(keycode=keycode, modifiers=modifiers)
 
 
 def _map_keycode(key_event: KeyEvent):
