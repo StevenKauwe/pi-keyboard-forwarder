@@ -64,20 +64,23 @@ def main():
 
     # Start a separate thread for file handling
     file_thread = threading.Thread(target=handle_file_input)
-    file_thread.daemon = True
     file_thread.start()
 
     # Continue with the main thread for keyboard event handling
-    for event in keyboard.read_loop():
-        logger.debug(f"Received event: {event}")
-        if event.type == ecodes.EV_KEY:
-            key_event = categorize(event)
-            hid_keystroke = ecodes_to_hid.convert(key_event)
-            logger.debug(f"Converted HID event: {hid_keystroke} from {key_event}")
-            try:
-                fake_keyboard.send_keystroke(GADGET_PATH, hid_keystroke)
-            except Exception as e:
-                logger.error(f"Failed to write key event: {e}")
+    try:
+        for event in keyboard.read_loop():
+            logger.debug(f"Received event: {event}")
+            if event.type == ecodes.EV_KEY:
+                key_event = categorize(event)
+                hid_keystroke = ecodes_to_hid.convert(key_event)
+                logger.debug(f"Converted HID event: {hid_keystroke} from {key_event}")
+                try:
+                    fake_keyboard.send_keystroke(GADGET_PATH, hid_keystroke)
+                except Exception as e:
+                    logger.error(f"Failed to write key event: {e}")
+    except KeyboardInterrupt:
+        # If the program is terminated with Ctrl+C, make sure to join the file_thread
+        file_thread.join()
 
 
 if __name__ == "__main__":
