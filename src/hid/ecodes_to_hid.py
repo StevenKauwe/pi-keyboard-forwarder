@@ -1,4 +1,5 @@
 from evdev import KeyEvent, ecodes
+from loguru import logger
 
 from hid import keycodes as hid
 
@@ -191,7 +192,7 @@ def convert(key_event: KeyEvent):
     update_modifier_state(key_event)
     keycode = _map_keycode(key_event)
     modifiers = _get_current_modifiers()
-    return hid.Keystroke(keycode=keycode, modifiers=modifiers)
+    return hid.Keystroke(keycode=keycode, modifier=modifiers)
 
 
 def _map_keycode(key_event: KeyEvent):
@@ -210,6 +211,7 @@ def update_modifier_state(key_event: KeyEvent):
 
 def _get_current_modifiers():
     modifier_bitmask = 0
+    logger.debug(f"modifiers_state: {modifiers_state}")
     for keycode, active in modifiers_state.items():
         if active:
             modifier_bitmask |= _MODIFIERS[keycode]

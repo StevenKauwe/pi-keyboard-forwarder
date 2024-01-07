@@ -1,12 +1,8 @@
-import logging
-
 from evdev import InputDevice, categorize, ecodes
+from loguru import logger
+
 from hid import ecodes_to_hid
 from hid import keyboard as fake_keyboard
-
-# Setup Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Keyboard device path
 KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
@@ -19,10 +15,12 @@ def main():
     logger.info(f"Listening on device: {keyboard.name}")
 
     for event in keyboard.read_loop():
+        logger.debug(f"Received event: {event}")
         if event.type == ecodes.EV_KEY:
             key_event = categorize(event)
             # Convert the input event to a HID event
             hid_keystroke = ecodes_to_hid.convert(key_event)
+            logger.debug(f"Converted HID event: {hid_keystroke} from {key_event}")
             # Send the HID event
             try:
                 fake_keyboard.send_keystroke(GADGET_PATH, hid_keystroke)
