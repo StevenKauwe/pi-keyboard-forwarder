@@ -29,8 +29,11 @@ def send_text_as_keystrokes(text: str, language: str):
     for char in text:
         try:
             keystroke = convert(char, language)
+            logger.debug(f"Sending keystroke for text: {keystroke}")
             if keystroke:
+                logger.debug(f"Before sending keystroke: {keystroke}")
                 fake_keyboard.send_keystroke(GADGET_PATH, keystroke)
+                logger.debug(f"After sending keystroke: {keystroke}")
                 time.sleep(0.05)  # Small delay between keystrokes
         except UnsupportedCharacterError as e:
             logger.error(f"Failed to convert character: {e}")
