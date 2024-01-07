@@ -13,7 +13,7 @@ def send_keystroke(keyboard_path, keystroke: Keystroke):
     # Set the modifier
     report[0] = modifier
     # Set the key code
-    if keystate == Keystroke.key_up:
+    if keystate == Keystroke.KEY_UP:
         report[2] = 0
     else:
         report[2] = hid_code  # Key pressed
