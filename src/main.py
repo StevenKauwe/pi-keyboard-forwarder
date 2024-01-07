@@ -1,7 +1,6 @@
 import logging
 
 from evdev import InputDevice, categorize, ecodes
-
 from hid import ecodes_to_hid
 from hid import keyboard as fake_keyboard
 
@@ -10,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Keyboard device path
-KEYBOARD_DEVICE = "/dev/input/eventX"  # Replace with your device path
+KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
 # USB Gadget path for emulating keyboard
 GADGET_PATH = "/dev/hidg0"  # Replace with your gadget path
 
