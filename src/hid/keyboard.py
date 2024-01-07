@@ -1,7 +1,8 @@
 from hid import write as hid_write
+from hid.keycodes import Keystroke
 
 
-def send_keystroke(keyboard_path, keystroke):
+def send_keystroke(keyboard_path, keystroke: Keystroke):
     buf = [0] * 8
     buf[0] = keystroke.modifier
     buf[2] = keystroke.keycode
