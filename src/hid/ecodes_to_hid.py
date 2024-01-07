@@ -1,4 +1,6 @@
-from evdev import ecodes
+from evdev import KeyEvent, ecodes
+
+from hid import Keystroke
 from hid import keycodes as hid
 
 
@@ -140,7 +142,6 @@ _MAPPING = {
     ecodes.KEY_F21: hid.KEYCODE_F21,
     ecodes.KEY_F22: hid.KEYCODE_F22,
     ecodes.KEY_F23: hid.KEYCODE_F23,
-    ecodes.KEY_EXECUTE: hid.KEYCODE_EXECUTE,
     ecodes.KEY_HELP: hid.KEYCODE_HELP,
     ecodes.KEY_SELECT: hid.KEYCODE_SELECT,
     ecodes.KEY_RO: hid.KEYCODE_INTL_RO,
@@ -151,77 +152,66 @@ _MAPPING = {
     ecodes.KEY_REFRESH: hid.KEYCODE_REFRESH,
 }
 
+# Modifier keycodes from evdev
+_MODIFIERS = {
+    ecodes.KEY_LEFTCTRL: hid.MODIFIER_LEFT_CTRL,
+    ecodes.KEY_RIGHTCTRL: hid.MODIFIER_RIGHT_CTRL,
+    ecodes.KEY_LEFTSHIFT: hid.MODIFIER_LEFT_SHIFT,
+    ecodes.KEY_RIGHTSHIFT: hid.MODIFIER_RIGHT_SHIFT,
+    ecodes.KEY_LEFTALT: hid.MODIFIER_LEFT_ALT,
+    ecodes.KEY_RIGHTALT: hid.MODIFIER_RIGHT_ALT,
+    ecodes.KEY_LEFTMETA: hid.MODIFIER_LEFT_META,
+    ecodes.KEY_RIGHTMETA: hid.MODIFIER_RIGHT_META,
+}
 
-def convert(keystroke):
-    """Converts a JavaScript-esque Keystroke object into a HID Keystroke object.
+# State of modifier keys
+modifiers_state = {
+    ecodes.KEY_LEFTCTRL: False,
+    ecodes.KEY_RIGHTCTRL: False,
+    ecodes.KEY_LEFTSHIFT: False,
+    ecodes.KEY_RIGHTSHIFT: False,
+    ecodes.KEY_LEFTALT: False,
+    ecodes.KEY_RIGHTALT: False,
+    ecodes.KEY_LEFTMETA: False,
+    ecodes.KEY_RIGHTMETA: False,
+}
+
+
+def convert(key_event: KeyEvent):
+    """Converts an evdev KeyEvent object into a HID Keystroke object.
 
     Args:
-        keystroke: A JavaScript-esque Keystroke object, as defined in
-            `app/request_parsers/keystroke.py`
+        key_event: An evdev KeyEvent object.
 
     Returns:
         A HID Keystroke object.
 
     Raises:
-        UnrecognizedKeyCodeError: If the JavaScript-esque Keystroke's keycode is
-            unrecognized.
+        UnrecognizedKeyCodeError: If the KeyEvent's keycode is unrecognized.
     """
-    return hid.Keystroke(
-        keycode=_map_keycode(keystroke), modifier=_map_modifier_keys(keystroke)
-    )
+    update_modifier_state(key_event)
+    keycode = _map_keycode(key_event)
+    modifiers = _get_current_modifiers()
+    return Keystroke(keycode=keycode, modifiers=modifiers)
 
 
-def _map_modifier_keys(keystroke):
-    modifier_bitmask = 0
-
-    if keystroke.left_ctrl_modifier:
-        modifier_bitmask |= hid.MODIFIER_LEFT_CTRL
-    if keystroke.right_ctrl_modifier:
-        modifier_bitmask |= hid.MODIFIER_RIGHT_CTRL
-
-    if keystroke.left_shift_modifier:
-        modifier_bitmask |= hid.MODIFIER_LEFT_SHIFT
-    if keystroke.right_shift_modifier:
-        modifier_bitmask |= hid.MODIFIER_RIGHT_SHIFT
-
-    if keystroke.left_alt_modifier:
-        modifier_bitmask |= hid.MODIFIER_LEFT_ALT
-    if keystroke.right_alt_modifier:
-        modifier_bitmask |= hid.MODIFIER_RIGHT_ALT
-
-    if keystroke.left_meta_modifier:
-        modifier_bitmask |= hid.MODIFIER_LEFT_META
-    if keystroke.right_meta_modifier:
-        modifier_bitmask |= hid.MODIFIER_RIGHT_META
-
-    return modifier_bitmask
-
-
-def _map_keycode(keystroke):
-    # If the current key press is a modifier key and it's the *only* modifier
-    # being pressed, treat it as a special case where we remap the HID code to
-    # KEYCODE_NONE. This is based on a report that certain KVMs only recognize
-    # a modifier keystroke if the HID code is KEYCODE_NONE, but we should verify
-    # that it matches behavior from normal USB keyboards.
-    if keystroke.code in _MODIFIER_KEYCODES and _count_modifiers(keystroke) == 1:
-        return hid.KEYCODE_NONE
-
+def _map_keycode(key_event: KeyEvent):
     try:
-        return _MAPPING[keystroke.code]
+        return _MAPPING.get(key_event.scancode, hid.KEYCODE_NONE)
     except KeyError as e:
         raise UnrecognizedKeyCodeError(
-            f"Unrecognized key code {keystroke.key} {keystroke.code}"
+            f"Unrecognized key code {key_event.keycode} {key_event.scancode}"
         ) from e
 
 
-def _count_modifiers(keystroke):
-    return (
-        int(keystroke.left_ctrl_modifier)
-        + int(keystroke.right_ctrl_modifier)
-        + int(keystroke.left_shift_modifier)
-        + int(keystroke.right_shift_modifier)
-        + int(keystroke.left_alt_modifier)
-        + int(keystroke.right_alt_modifier)
-        + int(keystroke.left_meta_modifier)
-        + int(keystroke.right_meta_modifier)
-    )
+def update_modifier_state(key_event: KeyEvent):
+    if key_event.scancode in _MODIFIERS:
+        modifiers_state[key_event.scancode] = key_event.keystate == KeyEvent.key_down
+
+
+def _get_current_modifiers():
+    modifier_bitmask = 0
+    for keycode, active in modifiers_state.items():
+        if active:
+            modifier_bitmask |= _MODIFIERS[keycode]
+    return modifier_bitmask
