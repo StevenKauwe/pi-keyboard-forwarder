@@ -4,10 +4,11 @@ import threading
 import time
 
 from evdev import InputDevice, categorize, ecodes
+from loguru import logger
+
 from hid import ecodes_to_hid
 from hid import keyboard as fake_keyboard
-from hid.text_to_hid import UnsupportedCharacterError, convert, process_string
-from loguru import logger
+from hid.text_to_hid import UnsupportedCharacterError, convert
 
 # Keyboard device path
 KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
@@ -15,13 +16,6 @@ KEYBOARD_DEVICE = "/dev/input/event8"  # Replace with your device path
 GADGET_PATH = "/dev/hidg0"  # Replace with your gadget path
 
 FILE_PATH = "text_to_keyboard.txt"  # Replace with the path to your file
-
-
-def read_and_process_file(file_path, language):
-    with open(file_path, "r") as file:
-        content = file.read()
-    processed_content = process_string(content, language)
-    return processed_content
 
 
 def cleanup():
@@ -45,9 +39,11 @@ def send_text_as_keystrokes(text: str, language: str):
 def handle_file_input():
     while True:
         if os.path.exists(FILE_PATH) and os.path.getsize(FILE_PATH) > 0:
-            text_to_send = read_and_process_file(
-                FILE_PATH, "en-US"
-            )  # Assuming en-US layout
+            with open(FILE_PATH, "r") as file:
+                text_to_send = file.read()
+            logger.info(
+                f"File {FILE_PATH} has content:\n{text_to_send}\n\nSending as keystrokes..."
+            )
             send_text_as_keystrokes(text_to_send, "en-US")
 
             # Wipe the file content after sending
