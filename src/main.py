@@ -31,9 +31,14 @@ def send_text_as_keystrokes(text: str, language: str):
             keystroke = convert(char, language)
             logger.debug(f"Sending keystroke for text: {keystroke}")
             if keystroke:
-                logger.debug(f"Before sending keystroke: {keystroke}")
+                logger.debug(f"Sending keystroke: {keystroke} (DOWN))")
+                keystroke.keystate = 1
                 fake_keyboard.send_keystroke(GADGET_PATH, keystroke)
-                logger.debug(f"After sending keystroke: {keystroke}")
+
+                logger.debug(f"Sending keystroke: {keystroke} (UP))")
+                keystroke.keystate = 0
+                fake_keyboard.send_keystroke(GADGET_PATH, keystroke)
+
                 time.sleep(0.05)  # Small delay between keystrokes
         except UnsupportedCharacterError as e:
             logger.error(f"Failed to convert character: {e}")
@@ -43,7 +48,7 @@ def handle_file_input():
     while True:
         if os.path.exists(FILE_PATH) and os.path.getsize(FILE_PATH) > 0:
             with open(FILE_PATH, "r") as file:
-                text_to_send = file.read()
+                text_to_send = file.read().rstrip("\n")
             logger.info(
                 f"File {FILE_PATH} has content:\n{text_to_send}\n\nSending as keystrokes..."
             )
